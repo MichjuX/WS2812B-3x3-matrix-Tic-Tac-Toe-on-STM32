@@ -321,6 +321,41 @@ void displayBoard(int board[3][3], int LEDS[]) {
 }
 
 
+/// od gpt
+void handleMovement(char direction, int *currentLED, int LEDS[], int board[]) {
+    // Update the current LED based on direction without changing the board
+	Set_LED(LEDS[*currentLED], 0, 0, 0);
+	displayBoard(board, LEDS);
+    switch (direction) {
+        case 'w':
+            *currentLED = (*currentLED - 3 + 9) % 9;  // Move up
+            break;
+        case 'a':
+            *currentLED = (*currentLED - 1 + 9) % 9;  // Move left
+            break;
+        case 's':
+            *currentLED = (*currentLED + 3) % 9;  // Move down
+            break;
+        case 'd':
+            *currentLED = (*currentLED + 1) % 9;  // Move right
+            break;
+        default:
+            break; // Unknown direction, no change
+    }
+    Set_LED(LEDS[*currentLED], 15, 15, 15);
+    WS2812_Send();
+}
+void handleSelection(int *currentLED, int player, int board[3][3], int LEDS[]) {
+    int row = *currentLED / 3;
+    int col = *currentLED % 3;
+
+    // Place the player's symbol if the cell is empty
+    if (board[row][col] == 0) {
+        board[row][col] = player;
+        displayBoard(board, LEDS); // Update the LED display
+    }
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -359,12 +394,12 @@ int main(void)
 //  Set_LED(numer, R, G, B); // numer leda, kolor RGB
 //  Set_Brightness(45);
 //  WS2812_Send();
-
+  int currentPlayer = 1;
 
   int board[3][3] = {
-	  {0,1,0},
-	  {0,0,2},
-	  {0,1,0}
+	  {0,0,0},
+	  {0,0,0},
+	  {0,0,0}
   };
   int LEDS[] = {0, 1, 2, 5, 4, 3, 6, 7, 8}; // przeadresowanie ledów w związku z ich spiralnym ułożeniem
   displayBoard(board, LEDS);
@@ -389,29 +424,65 @@ int main(void)
 
   int counter=0;
   while (1){
+	  if(currentPlayer==1){
+		  Set_LED(9, 15, 0, 0);
+	  }
+	  if(currentPlayer==2){
+		  Set_LED(9, 0, 15, 0);
+	  }
+	  uint8_t value;
+	          HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
+	          if (status == HAL_OK) {
+	              switch (value) {
+	                  case 'w':
+	                  case 'a':
+	                  case 's':
+	                  case 'd':
+	                      handleMovement(value, &currentLED, LEDS, board);
+	                      break;
+	                  case 'f':
+	                  case 'F':
+	                      handleSelection(&currentLED, currentPlayer, board, LEDS);
+	                      displayBoard(board, LEDS);
+	                      currentPlayer = (currentPlayer == 1) ? 2 : 1; // Switch player after placing a marker
 
-//  	  uint8_t value;
-//  	  HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
-//  	        if (status == HAL_OK) {
-//  	            // Data received successfully
-//  	            // Process the received data
-//  	        	printf("Pressed!\n");
-//  	        	WS2812_Send();
-//  	        	HAL_Delay(100);
-//  	        	  	          // Sprawdzenie otrzymanego znaku
-//  	        	switch (value) {
-//  	        		case 'w':
-//  	        	  	case 'a':
-//  	        	  	case 's':
-//  	        	  	case 'd':
-//  	        	  	// Obsługa kierunku
-//  	        	  		Set_LED(LEDS[currentLED], 0, 0, 0);
-//						handleDirection(value, &currentLED);
-//						break;
-//  	        	  	default:
-//  	        	  	    // Nieznany znak, ignoruj
-//  	        	  		break;
-//  	        	}
+	                      break;
+	                  case 'r':
+	                	  for(int i=0; i<3; i++){
+	                		  for(int j=0; j<3; j++){
+	                			  board[i][j]=0;
+	                		  }
+	                	  }
+	                	  displayBoard(board, LEDS);
+	                	  break;
+	                  default:
+	                      break; // Unknown input, ignore
+	              }
+	          }
+  }
+
+  	  uint8_t value;
+  	  HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
+  	        if (status == HAL_OK) {
+  	            // Data received successfully
+  	            // Process the received data
+  	        	printf("Pressed!\n");
+  	        	WS2812_Send();
+  	        	HAL_Delay(100);
+  	        	  	          // Sprawdzenie otrzymanego znaku
+  	        	switch (value) {
+  	        		case 'w':
+  	        	  	case 'a':
+  	        	  	case 's':
+  	        	  	case 'd':
+  	        	  	// Obsługa kierunku
+  	        	  		Set_LED(LEDS[currentLED], 0, 0, 0);
+						handleDirection(value, &currentLED);
+						break;
+  	        	  	default:
+  	        	  	    // Nieznany znak, ignoruj
+  	        	  		break;
+  	        	}
 //  	        } else {
 //  	            // No data received within the timeout period
 //  	            // Handle the case accordingly
