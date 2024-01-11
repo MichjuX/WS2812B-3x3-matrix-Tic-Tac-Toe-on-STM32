@@ -24,6 +24,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -356,6 +357,18 @@ void handleSelection(int *currentLED, int player, int board[3][3], int LEDS[]) {
     }
 }
 
+bool win(int board[3][3] ){
+    if((board[0][0]!=0)&&(board[0][0]==board[0][1])&&(board[0][1]==board[0][2])) return true;
+    if((board[1][0]!=0)&&(board[1][0]==board[1][1])&&(board[1][1]==board[1][2])) return true;
+    if((board[2][0]!=0)&&(board[2][0]==board[2][1])&&(board[2][1]==board[2][2])) return true;
+    if((board[0][0]!=0)&&(board[0][0]==board[1][0])&&(board[1][0]==board[2][0])) return true;
+    if((board[0][1]!=0)&&(board[0][1]==board[1][1])&&(board[1][1]==board[2][1])) return true;
+    if((board[0][2]!=0)&&(board[0][2]==board[1][2])&&(board[1][2]==board[2][2])) return true;
+    if((board[0][0]!=0)&&(board[0][0]==board[1][1])&&(board[1][1]==board[2][2])) return true;
+    if((board[0][2]!=0)&&(board[0][2]==board[1][1])&&(board[1][1]==board[2][0])) return true;
+    return false;
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -424,65 +437,87 @@ int main(void)
 
   int counter=0;
   while (1){
-	  if(currentPlayer==1){
-		  Set_LED(9, 15, 0, 0);
-	  }
-	  if(currentPlayer==2){
-		  Set_LED(9, 0, 15, 0);
-	  }
-	  uint8_t value;
-	          HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
-	          if (status == HAL_OK) {
-	              switch (value) {
-	                  case 'w':
-	                  case 'a':
-	                  case 's':
-	                  case 'd':
-	                      handleMovement(value, &currentLED, LEDS, board);
-	                      break;
-	                  case 'f':
-	                  case 'F':
-	                      handleSelection(&currentLED, currentPlayer, board, LEDS);
-	                      displayBoard(board, LEDS);
-	                      currentPlayer = (currentPlayer == 1) ? 2 : 1; // Switch player after placing a marker
+  if(currentPlayer==1){
+	  Set_LED(9, 15, 0, 0);
+  }
+  if(currentPlayer==2){
+	  Set_LED(9, 0, 15, 0);
+  }
+  uint8_t value;
+		  HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
+		  if (status == HAL_OK) {
+			  switch (value) {
+				  case 'w':
+				  case 'a':
+				  case 's':
+				  case 'd':
+					  handleMovement(value, &currentLED, LEDS, board);
+					  break;
+				  case 'f':
+				  case 'F':
+					  handleSelection(&currentLED, currentPlayer, board, LEDS);
+					  displayBoard(board, LEDS);
+					  currentPlayer = (currentPlayer == 1) ? 2 : 1; // Switch player after placing a marker
 
-	                      break;
-	                  case 'r':
-	                	  for(int i=0; i<3; i++){
-	                		  for(int j=0; j<3; j++){
-	                			  board[i][j]=0;
-	                		  }
-	                	  }
-	                	  displayBoard(board, LEDS);
-	                	  break;
-	                  default:
-	                      break; // Unknown input, ignore
-	              }
-	          }
+					  break;
+				  case 'r':
+					  for(int i=0; i<3; i++){
+						  for(int j=0; j<3; j++){
+							  board[i][j]=0;
+						  }
+					  }
+					  displayBoard(board, LEDS);
+					  break;
+				  default:
+					  break; // Unknown input, ignore
+			  }
+		  }
+		  else {
+		  // No data received within the timeout period
+		  // Handle the case accordingly
+			  if (counter > 10000) {
+				  counter = 0;
+				  }
+			  else {
+				  counter++;
+					}
+
+			  if (counter % 10 == 0) {
+				  displayBoard(board, LEDS);
+			  }
+
+			  if (counter % 20 == 0) {
+				  Set_LED(LEDS[currentLED], 15, 15, 15);
+			  }
+
+		  //printf("%d", counter);
+		WS2812_Send();
+		HAL_Delay(1);
+	            	        }
   }
 
-  	  uint8_t value;
-  	  HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
-  	        if (status == HAL_OK) {
-  	            // Data received successfully
-  	            // Process the received data
-  	        	printf("Pressed!\n");
-  	        	WS2812_Send();
-  	        	HAL_Delay(100);
-  	        	  	          // Sprawdzenie otrzymanego znaku
-  	        	switch (value) {
-  	        		case 'w':
-  	        	  	case 'a':
-  	        	  	case 's':
-  	        	  	case 'd':
-  	        	  	// Obsługa kierunku
-  	        	  		Set_LED(LEDS[currentLED], 0, 0, 0);
-						handleDirection(value, &currentLED);
-						break;
-  	        	  	default:
-  	        	  	    // Nieznany znak, ignoruj
-  	        	  		break;
-  	        	}
+//  	  uint8_t value;
+//  	  HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
+//  	        if (status == HAL_OK) {
+//  	            // Data received successfully
+//  	            // Process the received data
+//  	        	printf("Pressed!\n");
+//  	        	WS2812_Send();
+//  	        	HAL_Delay(100);
+//  	        	  	          // Sprawdzenie otrzymanego znaku
+//  	        	switch (value) {
+//  	        		case 'w':
+//  	        	  	case 'a':
+//  	        	  	case 's':
+//  	        	  	case 'd':
+//  	        	  	// Obsługa kierunku
+//  	        	  		Set_LED(LEDS[currentLED], 0, 0, 0);
+//						handleDirection(value, &currentLED);
+//						break;
+//  	        	  	default:
+//  	        	  	    // Nieznany znak, ignoruj
+//  	        	  		break;
+//  	        	}
 //  	        } else {
 //  	            // No data received within the timeout period
 //  	            // Handle the case accordingly
@@ -527,7 +562,7 @@ int main(void)
       /* USER CODE BEGIN 3 */
     }
     /* USER CODE END 3 */
-  }
+
 
 
 /**
