@@ -343,31 +343,96 @@ void handleMovement(char direction, int *currentLED, int LEDS[], int board[]) {
         default:
             break; // Unknown direction, no change
     }
-    Set_LED(LEDS[*currentLED], 15, 15, 15);
+    Set_LED(LEDS[*currentLED], 0, 0, 15);
     WS2812_Send();
 }
-void handleSelection(int *currentLED, int player, int board[3][3], int LEDS[]) {
+bool handleSelection(int *currentLED, int player, int board[3][3], int LEDS[]) {
     int row = *currentLED / 3;
     int col = *currentLED % 3;
 
     // Place the player's symbol if the cell is empty
     if (board[row][col] == 0) {
         board[row][col] = player;
-        displayBoard(board, LEDS); // Update the LED display
+        displayBoard(board, LEDS);
+        return true;// Update the LED display
     }
+    else return false;
 }
 
-bool win(int board[3][3] ){
-    if((board[0][0]!=0)&&(board[0][0]==board[0][1])&&(board[0][1]==board[0][2])) return true;
-    if((board[1][0]!=0)&&(board[1][0]==board[1][1])&&(board[1][1]==board[1][2])) return true;
-    if((board[2][0]!=0)&&(board[2][0]==board[2][1])&&(board[2][1]==board[2][2])) return true;
-    if((board[0][0]!=0)&&(board[0][0]==board[1][0])&&(board[1][0]==board[2][0])) return true;
-    if((board[0][1]!=0)&&(board[0][1]==board[1][1])&&(board[1][1]==board[2][1])) return true;
-    if((board[0][2]!=0)&&(board[0][2]==board[1][2])&&(board[1][2]==board[2][2])) return true;
-    if((board[0][0]!=0)&&(board[0][0]==board[1][1])&&(board[1][1]==board[2][2])) return true;
-    if((board[0][2]!=0)&&(board[0][2]==board[1][1])&&(board[1][1]==board[2][0])) return true;
-    return false;
+int win(int board[3][3] ){
+    if((board[0][0]!=0)&&(board[0][0]==board[0][1])&&(board[0][1]==board[0][2])) return 0;
+    if((board[1][0]!=0)&&(board[1][0]==board[1][1])&&(board[1][1]==board[1][2])) return 1;
+    if((board[2][0]!=0)&&(board[2][0]==board[2][1])&&(board[2][1]==board[2][2])) return 2;
+    if((board[0][0]!=0)&&(board[0][0]==board[1][0])&&(board[1][0]==board[2][0])) return 3;
+    if((board[0][1]!=0)&&(board[0][1]==board[1][1])&&(board[1][1]==board[2][1])) return 4;
+    if((board[0][2]!=0)&&(board[0][2]==board[1][2])&&(board[1][2]==board[2][2])) return 5;
+    if((board[0][0]!=0)&&(board[0][0]==board[1][1])&&(board[1][1]==board[2][2])) return 6;
+    if((board[0][2]!=0)&&(board[0][2]==board[1][1])&&(board[1][1]==board[2][0])) return 7;
+    return -1;
 }
+
+void blink(int line, int player, int LEDS[], bool light) {
+    int green = 0;
+    int red = 0;
+
+    if (light) {
+        if (player == 1) {
+            green = 15;
+        } else {
+            red = 15;
+        }
+    }
+
+    switch (line) {
+        case 0:
+            Set_LED(LEDS[0], red, green, 0);
+            Set_LED(LEDS[1], red, green, 0);
+            Set_LED(LEDS[2], red, green, 0);
+            break;
+        case 1:
+            Set_LED(LEDS[3], red, green, 0);
+            Set_LED(LEDS[4], red, green, 0);
+            Set_LED(LEDS[5], red, green, 0);
+            break;
+        case 2:
+            Set_LED(LEDS[6], red, green, 0);
+            Set_LED(LEDS[7], red, green, 0);
+            Set_LED(LEDS[8], red, green, 0);
+            break;
+        case 3:
+            Set_LED(LEDS[0], red, green, 0);
+            Set_LED(LEDS[3], red, green, 0);
+            Set_LED(LEDS[6], red, green, 0);
+            break;
+        case 4:
+            Set_LED(LEDS[1], red, green, 0);
+            Set_LED(LEDS[4], red, green, 0);
+            Set_LED(LEDS[7], red, green, 0);
+            break;
+        case 5:
+            Set_LED(LEDS[2], red, green, 0);
+            Set_LED(LEDS[5], red, green, 0);
+            Set_LED(LEDS[8], red, green, 0);
+            break;
+        case 6:
+            Set_LED(LEDS[0], red, green, 0);
+            Set_LED(LEDS[4], red, green, 0);
+            Set_LED(LEDS[8], red, green, 0);
+            break;
+        case 7:
+            Set_LED(LEDS[2], red, green, 0);
+            Set_LED(LEDS[4], red, green, 0);
+            Set_LED(LEDS[6], red, green, 0);
+            break;
+        default:
+            // Handle an invalid line value if needed
+            break;
+    }
+
+    WS2812_Send();
+}
+
+
 
 /* USER CODE END 0 */
 
@@ -414,7 +479,7 @@ int main(void)
 	  {0,0,0},
 	  {0,0,0}
   };
-  int LEDS[] = {0, 1, 2, 5, 4, 3, 6, 7, 8}; // przeadresowanie ledów w związku z ich spiralnym ułożeniem
+  int LEDS[] = {0, 1, 2, 5, 4, 3, 6, 7, 8, 9}; // przeadresowanie ledów w związku z ich spiralnym ułożeniem
   displayBoard(board, LEDS);
 
 
@@ -426,75 +491,106 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//  int color=0;
-//  ws2812b_init();
-//  ws2812b_set_color(1, 255, 0, 255);
-//  ws2812b_update();
-  int lednum=0;
-  int previous=59;
-
   int currentLED = 0;
-
   int counter=0;
-  while (1){
-  if(currentPlayer==1){
-	  Set_LED(9, 15, 0, 0);
+  int gameWon=-1;
+  bool movePossible = true;
+
+  while (1) {
+	  uint8_t value;
+      HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
+      if(status == HAL_OK){
+    	  gameWon = -1;
+          for (int i = 0; i < 3; i++) {
+              for (int j = 0; j < 3; j++) {
+                  board[i][j] = 0;
+              }
+          }
+      }
+      while (gameWon<0) {
+          if (currentPlayer == 1) {
+              Set_LED(9, 15, 0, 0);
+          }
+
+          if (currentPlayer == 2) {
+              Set_LED(9, 0, 15, 0);
+          }
+          HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
+          if (status == HAL_OK) {
+              switch (value) {
+                  case 'w':
+                  case 'a':
+                  case 's':
+                  case 'd':
+                      handleMovement(value, &currentLED, LEDS, board);
+                      break;
+
+                  case 'f':
+                  case 'F':
+                      movePossible = handleSelection(&currentLED, currentPlayer, board, LEDS);
+                      displayBoard(board, LEDS);
+                      if(movePossible){
+                    	  currentPlayer = (currentPlayer == 1) ? 2 : 1; // Switch player after placing a marker
+                      }
+                      gameWon = win(board);
+                      break;
+
+                  case 'r':
+                      for (int i = 0; i < 3; i++) {
+                          for (int j = 0; j < 3; j++) {
+                              board[i][j] = 0;
+                          }
+                      }
+                      displayBoard(board, LEDS);
+                      gameWon = false;
+                      break;
+
+                  default:
+                      break; // Unknown input, ignore
+              }
+          } else {
+              // No data received within the timeout period
+              // Handle the case accordingly
+              if (counter > 10000) {
+                  counter = 0;
+              } else {
+                  counter++;
+              }
+
+              if (counter % 10 == 0) {
+                  displayBoard(board, LEDS);
+              }
+
+              if (counter % 20 == 0) {
+                  Set_LED(LEDS[currentLED], 0, 0, 15);
+              }
+
+              // printf("%d", counter);
+              WS2812_Send();
+              HAL_Delay(1);
+          }
+      }
+      if (counter > 10000) {
+          counter = 0;
+      } else {
+          counter++;
+      }
+
+      if (counter % 10 == 0) {
+          displayBoard(board, LEDS);
+          blink(gameWon, currentPlayer, LEDS, false);
+      }
+
+      if (counter % 20 == 0) {
+    	  blink(gameWon, currentPlayer, LEDS, true);
+      }
+
+      // printf("%d", counter);
+      WS2812_Send();
+      HAL_Delay(1);
+
   }
-  if(currentPlayer==2){
-	  Set_LED(9, 0, 15, 0);
-  }
-  uint8_t value;
-		  HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
-		  if (status == HAL_OK) {
-			  switch (value) {
-				  case 'w':
-				  case 'a':
-				  case 's':
-				  case 'd':
-					  handleMovement(value, &currentLED, LEDS, board);
-					  break;
-				  case 'f':
-				  case 'F':
-					  handleSelection(&currentLED, currentPlayer, board, LEDS);
-					  displayBoard(board, LEDS);
-					  currentPlayer = (currentPlayer == 1) ? 2 : 1; // Switch player after placing a marker
 
-					  break;
-				  case 'r':
-					  for(int i=0; i<3; i++){
-						  for(int j=0; j<3; j++){
-							  board[i][j]=0;
-						  }
-					  }
-					  displayBoard(board, LEDS);
-					  break;
-				  default:
-					  break; // Unknown input, ignore
-			  }
-		  }
-		  else {
-		  // No data received within the timeout period
-		  // Handle the case accordingly
-			  if (counter > 10000) {
-				  counter = 0;
-				  }
-			  else {
-				  counter++;
-					}
-
-			  if (counter % 10 == 0) {
-				  displayBoard(board, LEDS);
-			  }
-
-			  if (counter % 20 == 0) {
-				  Set_LED(LEDS[currentLED], 15, 15, 15);
-			  }
-
-		  //printf("%d", counter);
-		WS2812_Send();
-		HAL_Delay(1);
-	            	        }
-  }
 
 //  	  uint8_t value;
 //  	  HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
