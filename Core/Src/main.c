@@ -293,6 +293,14 @@ void handleDirection(char direction, int *currentLED) {
     } else {
         Set_LED(*currentLED, 15, 15, 15);
     }
+//    for (int i = 0; i < 5; i++) {
+//            Set_LED(*currentLED, 15, 15, 15);
+//            WS2812_Send();
+//            HAL_Delay(500);  // Miganie przez 500 ms
+//            Set_LED(*currentLED, 0, 0, 0);
+//            WS2812_Send();
+//            HAL_Delay(500);  // Bez światła przez 500 ms
+//        }
 
     // Wysłanie danych do diod LED
     WS2812_Send();
@@ -367,8 +375,7 @@ int main(void)
 //  const char message[] = "Hello world!\r\n";
 //  HAL_UART_Transmit(&huart2, message, strlen(message), HAL_MAX_DELAY);
 //  fflush(stdout);
-  printf("Hello world!\n");
-  fflush(stdout);
+
 
 
 
@@ -384,47 +391,77 @@ int main(void)
   int previous=59;
 
   int currentLED = 0;
+  int LEDS[] = {0, 1, 2, 5, 4, 3, 6, 7, 8}; // przeadresowanie ledów w związku z ich spiralnym ułożeniem
+  int counter=0;
   while (1){
-	  uint8_t value;
-	          HAL_UART_Receive(&huart2, &value, 1, HAL_MAX_DELAY);
-	          Set_LED(currentLED, 0, 0, 0);
-	          WS2812_Send();
-	          HAL_Delay(100);
-	          // Sprawdzenie otrzymanego znaku
-	          switch (value) {
-	              case 'w':
-	              case 'a':
-	              case 's':
-	              case 'd':
-	                  // Obsługa kierunku
-	                  handleDirection(value, &currentLED);
-	                  break;
-	              default:
-	                  // Nieznany znak, ignoruj
-	                  break;
-	          }
+  	  uint8_t value;
+  	  HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
+  	        if (status == HAL_OK) {
+  	            // Data received successfully
+  	            // Process the received data
+  	        	printf("Pressed!\n");
+  	        	WS2812_Send();
+  	        	HAL_Delay(100);
+  	        	  	          // Sprawdzenie otrzymanego znaku
+  	        	switch (value) {
+  	        		case 'w':
+  	        	  	case 'a':
+  	        	  	case 's':
+  	        	  	case 'd':
+  	        	  	// Obsługa kierunku
+  	        	  		Set_LED(LEDS[currentLED], 0, 0, 0);
+						handleDirection(value, &currentLED);
+						break;
+  	        	  	default:
+  	        	  	    // Nieznany znak, ignoruj
+  	        	  		break;
+  	        	}
+  	        } else {
+  	            // No data received within the timeout period
+  	            // Handle the case accordingly
+  	        	if (counter > 10000) {
+  	        	    counter = 0;
+  	        	} else {
+  	        	    counter++;
+  	        	}
+
+  	        	if (counter % 10 == 0) {
+  	        	    Set_LED(LEDS[currentLED], 0, 0, 0);
+  	        	}
+
+  	        	if (counter % 20 == 0) {
+  	        	    Set_LED(LEDS[currentLED], 15, 15, 15);
+  	        	}
+
+//  	        	printf("%d", counter);
+  	        	WS2812_Send();
+  	        	HAL_Delay(1);
+  	        }
 
 
-//	  for (int i=0; i<9; i++){
-//		  Set_LED(i, 50, 50, 0);
-//
-//	  	  }
-//
-//	  WS2812_Send();
-//	  HAL_Delay(500);
-//	  for (int i=0; i<9; i++){
-//		  Set_LED(i, 255, 0, 0);
-//
-//		  WS2812_Send();
-//		  HAL_Delay(500);
-//	  }
 
-    /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+  //	  for (int i=0; i<9; i++){
+  //		  Set_LED(i, 50, 50, 0);
+  //
+  //	  	  }
+  //
+  //	  WS2812_Send();
+  //	  HAL_Delay(500);
+  //	  for (int i=0; i<9; i++){
+  //		  Set_LED(i, 255, 0, 0);
+  //
+  //		  WS2812_Send();
+  //		  HAL_Delay(500);
+  //	  }
+
+      /* USER CODE END WHILE */
+
+      /* USER CODE BEGIN 3 */
+    }
+    /* USER CODE END 3 */
   }
-  /* USER CODE END 3 */
-}
+
 
 /**
   * @brief System Clock Configuration
