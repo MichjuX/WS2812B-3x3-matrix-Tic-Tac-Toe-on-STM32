@@ -305,6 +305,20 @@ void handleDirection(char direction, int *currentLED) {
     // Wysłanie danych do diod LED
     WS2812_Send();
 }
+void displayBoard(int board[3][3], int LEDS[]) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (board[i][j] == 1) {
+                Set_LED(LEDS[i * 3 + j], 15, 0, 0); // Red for 'X'
+            } else if (board[i][j] == 2) {
+                Set_LED(LEDS[i * 3 + j], 0, 15, 0); // Green for 'O'
+            } else {
+                Set_LED(LEDS[i * 3 + j], 0, 0, 0); // Off for empty
+            }
+        }
+    }
+    WS2812_Send();
+}
 
 
 /* USER CODE END 0 */
@@ -342,40 +356,21 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-//  Set_LED(0, 255, 0, 0);
-//  Set_LED(1, 0, 255, 0);
-//  Set_LED(2, 0, 0, 255);
-//
-//  Set_LED(3, 46, 89, 128);
-//
-//  Set_LED(4, 156, 233, 100);
-//  Set_LED(5, 102, 0, 235);
-//  Set_LED(6, 47, 38, 77);
-//
-//  Set_LED(7, 255, 200, 0);
-//  Set_LED(8, 255, 200, 0);
-//  Set_LED(9, 255, 200, 0);
-
-//  for(int i=0; i<59; i++)
-//  Set_LED(i, 255, 0, 0);
-//
-//
-//  for(int i=0; i<59; i++){
-//	  Set_LED(i, 255, 0, 0);
-//  }
-
-
-
 //  Set_LED(numer, R, G, B); // numer leda, kolor RGB
 //  Set_Brightness(45);
 //  WS2812_Send();
 
 
+  int board[3][3] = {
+	  {0,1,0},
+	  {0,0,2},
+	  {0,1,0}
+  };
+  int LEDS[] = {0, 1, 2, 5, 4, 3, 6, 7, 8}; // przeadresowanie ledów w związku z ich spiralnym ułożeniem
+  displayBoard(board, LEDS);
 
-//  const char message[] = "Hello world!\r\n";
-//  HAL_UART_Transmit(&huart2, message, strlen(message), HAL_MAX_DELAY);
-//  fflush(stdout);
 
+  WS2812_Send();
 
 
 
@@ -391,52 +386,53 @@ int main(void)
   int previous=59;
 
   int currentLED = 0;
-  int LEDS[] = {0, 1, 2, 5, 4, 3, 6, 7, 8}; // przeadresowanie ledów w związku z ich spiralnym ułożeniem
+
   int counter=0;
   while (1){
-  	  uint8_t value;
-  	  HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
-  	        if (status == HAL_OK) {
-  	            // Data received successfully
-  	            // Process the received data
-  	        	printf("Pressed!\n");
-  	        	WS2812_Send();
-  	        	HAL_Delay(100);
-  	        	  	          // Sprawdzenie otrzymanego znaku
-  	        	switch (value) {
-  	        		case 'w':
-  	        	  	case 'a':
-  	        	  	case 's':
-  	        	  	case 'd':
-  	        	  	// Obsługa kierunku
-  	        	  		Set_LED(LEDS[currentLED], 0, 0, 0);
-						handleDirection(value, &currentLED);
-						break;
-  	        	  	default:
-  	        	  	    // Nieznany znak, ignoruj
-  	        	  		break;
-  	        	}
-  	        } else {
-  	            // No data received within the timeout period
-  	            // Handle the case accordingly
-  	        	if (counter > 10000) {
-  	        	    counter = 0;
-  	        	} else {
-  	        	    counter++;
-  	        	}
 
-  	        	if (counter % 10 == 0) {
-  	        	    Set_LED(LEDS[currentLED], 0, 0, 0);
-  	        	}
-
-  	        	if (counter % 20 == 0) {
-  	        	    Set_LED(LEDS[currentLED], 15, 15, 15);
-  	        	}
-
-//  	        	printf("%d", counter);
-  	        	WS2812_Send();
-  	        	HAL_Delay(1);
-  	        }
+//  	  uint8_t value;
+//  	  HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
+//  	        if (status == HAL_OK) {
+//  	            // Data received successfully
+//  	            // Process the received data
+//  	        	printf("Pressed!\n");
+//  	        	WS2812_Send();
+//  	        	HAL_Delay(100);
+//  	        	  	          // Sprawdzenie otrzymanego znaku
+//  	        	switch (value) {
+//  	        		case 'w':
+//  	        	  	case 'a':
+//  	        	  	case 's':
+//  	        	  	case 'd':
+//  	        	  	// Obsługa kierunku
+//  	        	  		Set_LED(LEDS[currentLED], 0, 0, 0);
+//						handleDirection(value, &currentLED);
+//						break;
+//  	        	  	default:
+//  	        	  	    // Nieznany znak, ignoruj
+//  	        	  		break;
+//  	        	}
+//  	        } else {
+//  	            // No data received within the timeout period
+//  	            // Handle the case accordingly
+//  	        	if (counter > 10000) {
+//  	        	    counter = 0;
+//  	        	} else {
+//  	        	    counter++;
+//  	        	}
+//
+//  	        	if (counter % 10 == 0) {
+//  	        	    Set_LED(LEDS[currentLED], 0, 0, 0);
+//  	        	}
+//
+//  	        	if (counter % 20 == 0) {
+//  	        	    Set_LED(LEDS[currentLED], 15, 15, 15);
+//  	        	}
+//
+////  	        	printf("%d", counter);
+//  	        	WS2812_Send();
+//  	        	HAL_Delay(1);
+//  	        }
 
 
 
