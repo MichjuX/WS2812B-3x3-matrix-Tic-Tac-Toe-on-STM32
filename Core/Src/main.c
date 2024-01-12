@@ -485,7 +485,14 @@ int main(void)
 
   WS2812_Send();
 
-
+  printf("Gra kółko i krzyżyk. \nSterowanie:\n");
+  printf("W - ruch do góry\n");
+  printf("A - ruch w lewo\n");
+  printf("S - ruch w dół\n");
+  printf("D - ruch w prawo\n");
+  printf("F - zatwierdzenie ruchu\n");
+  printf("R - zresetowanie gry\n");
+  printf("LED na dole pokazuje czyj jest ruch.\n");
 
   /* USER CODE END 2 */
 
@@ -497,6 +504,7 @@ int main(void)
   bool movePossible = true;
 
   while (1) {
+
 	  uint8_t value;
       HAL_StatusTypeDef status = HAL_UART_Receive(&huart2, &value, 1, 0);
       if(status == HAL_OK){
@@ -549,6 +557,9 @@ int main(void)
                     	  }
                       }
                       gameWon = win(board);
+                      if(gameWon>=0){
+                    	  printf("Wciśnij dowolny przycisk aby rozpocząć ponownie.\n");
+                      }
                       break;
 
                   case 'r':
