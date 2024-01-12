@@ -64,6 +64,7 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
 int __io_putchar(int ch)
 {
     if (ch == '\n') {
@@ -443,6 +444,15 @@ void blink(int line, int player, int LEDS[], bool light) {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	printf("Gra kółko i krzyżyk. \nSterowanie:\n");
+	printf("W - ruch do góry\n");
+	printf("A - ruch w lewo\n");
+	printf("S - ruch w dół\n");
+	printf("D - ruch w prawo\n");
+	printf("F - zatwierdzenie ruchu\n");
+	printf("R - zresetowanie gry\n");
+	printf("LED na dole pokazuje czyj jest ruch.\n");
+	fflush(stdout);
 
   /* USER CODE END 1 */
 
@@ -485,14 +495,6 @@ int main(void)
 
   WS2812_Send();
 
-  printf("Gra kółko i krzyżyk. \nSterowanie:\n");
-  printf("W - ruch do góry\n");
-  printf("A - ruch w lewo\n");
-  printf("S - ruch w dół\n");
-  printf("D - ruch w prawo\n");
-  printf("F - zatwierdzenie ruchu\n");
-  printf("R - zresetowanie gry\n");
-  printf("LED na dole pokazuje czyj jest ruch.\n");
 
   /* USER CODE END 2 */
 
