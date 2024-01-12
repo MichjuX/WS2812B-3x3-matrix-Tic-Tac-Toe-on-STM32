@@ -532,6 +532,22 @@ int main(void)
                       if(movePossible){
                     	  currentPlayer = (currentPlayer == 1) ? 2 : 1; // Switch player after placing a marker
                       }
+                      else{
+                    	  int green=0, red=0;
+                    	  if (currentPlayer == 1) {
+                    	     green = 15;
+                    	  } else {
+                    	     red = 15;
+                    	  }
+                    	  for(int i=0; i<3; i++){
+							  Set_LED(LEDS[currentLED], 15, 15, 0);
+							  WS2812_Send();
+							  HAL_Delay(100);
+							  Set_LED(LEDS[currentLED], red, green, 0);
+							  WS2812_Send();
+							  HAL_Delay(100);
+                    	  }
+                      }
                       gameWon = win(board);
                       break;
 
@@ -542,7 +558,7 @@ int main(void)
                           }
                       }
                       displayBoard(board, LEDS);
-                      gameWon = false;
+                      gameWon = -1;
                       break;
 
                   default:
